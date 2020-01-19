@@ -16,8 +16,17 @@ const Routes = createAppContainer(
             screen: Profile,
             navigationOptions: {
                 title:'Perfil no Mapa'
-            }
-        }
+            },
+        },
+    },{
+        defaultNavigationOptions: {
+            headerTitleAlign: 'center',
+            headerTintColor: '#FFF',
+            headerStyle: {
+                backgroundColor: '#7D40E7',
+            },
+        },
+        
     })
 );
 
