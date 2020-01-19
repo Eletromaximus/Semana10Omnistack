@@ -1,6 +1,6 @@
 import React, {useEffect, useState} from 'react';
-import {StyleSheet, Image} from 'react-native';
-import MapView, {Marker} from 'react-native-maps';
+import {StyleSheet, Image, View, Text} from 'react-native';
+import MapView, {Marker, Callout} from 'react-native-maps';
 import {requestPermissionsAsync, getCurrentPositionAsync} from 'expo-location'
 
 function Main(){
@@ -32,6 +32,13 @@ function Main(){
     return <MapView initialRegion={currentRegion} style={styles.map}>
         <Marker coordinate={{latitude: -16.762619, longitude:-49.269082}}>
             <Image style={styles.avatar} source={{uri:'https://images.tcdn.com.br/img/img_prod/596049/adesivo_finn_hora_de_aventura_043_2184_1_20171031140437.jpg'}}/>
+            <Callout>
+                <View style={styles.callout}>
+                <Text style={styles.devName}>Max Milliano</Text>
+                <Text style={styles.devBio}>Batata</Text>
+                <Text style={styles.devTechs}>ReactJs, React Native, Node.js</Text>
+                </View>
+            </Callout>
         </Marker>
     </MapView>
 }
