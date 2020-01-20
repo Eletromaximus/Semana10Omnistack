@@ -3,7 +3,7 @@ import {StyleSheet, Image, View, Text} from 'react-native';
 import MapView, {Marker, Callout} from 'react-native-maps';
 import {requestPermissionsAsync, getCurrentPositionAsync} from 'expo-location'
 
-function Main(){
+function Main({navigation}){
     const [currentRegion, setCurrentRegion] = useState(null);
     useEffect(()=>{
         async function loadInitialPosition(){
@@ -32,10 +32,12 @@ function Main(){
     return <MapView initialRegion={currentRegion} style={styles.map}>
         <Marker coordinate={{latitude: -16.762619, longitude:-49.269082}}>
             <Image style={styles.avatar} source={{uri:'https://images.tcdn.com.br/img/img_prod/596049/adesivo_finn_hora_de_aventura_043_2184_1_20171031140437.jpg'}}/>
-            <Callout>
+            <Callout onPress={()=>{
+                navigation.navigate('Profile',{github_username: 'Eletromaximus'})
+            }}>
                 <View style={styles.callout}>
-                <Text style={styles.devName}>Max Milliano</Text>
-                <Text style={styles.devBio}>Batata</Text>
+                <Text style={styles.devName}>Max Milliano </Text>
+                <Text style={styles.devBio}>Batata Palha com molho especial</Text>
                 <Text style={styles.devTechs}>ReactJs, React Native, Node.js</Text>
                 </View>
             </Callout>
@@ -52,6 +54,20 @@ const styles = StyleSheet.create({
         borderRadius: 4,
         borderWidth: 4,
         borderColor: '#FFF'
+    },
+    callout: {
+        width: 260,       
+    },
+    devName:{
+        fontWeight:'bold',
+        fontSize: 16,
+    },
+    devBio:{
+        color: '#666',
+        marginTop: 5,
+    },
+    devTechs:{
+        marginTop: 5,
     }
 })
 export default Main;
