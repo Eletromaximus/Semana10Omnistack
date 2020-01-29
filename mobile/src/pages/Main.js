@@ -1,10 +1,16 @@
 import React, {useEffect, useState} from 'react';
-import {StyleSheet, Image, View, Text} from 'react-native';
+import {StyleSheet, Image, View, Text, TextInput, TouchableOpacity} from 'react-native';
 import MapView, {Marker, Callout} from 'react-native-maps';
-import {requestPermissionsAsync, getCurrentPositionAsync} from 'expo-location'
+import {requestPermissionsAsync, getCurrentPositionAsync} from 'expo-location';
+import {MaterialIcons} from '@expo/vector-icons';
+
+import api from '../services/api';
+import {connect, disconnect, subscribeToNewDevs} from '../services/socket';
 
 function Main({navigation}){
+    const [devs, setDevs] = useState([]);
     const [currentRegion, setCurrentRegion] = useState(null);
+    const [techs, setTechs] = useState('');
     useEffect(()=>{
         async function loadInitialPosition(){
             const {granted} = await requestPermissionsAsync();
@@ -26,23 +32,94 @@ function Main({navigation}){
         }
         loadInitialPosition();
     }, []);
+
+    useEffect(()=>{
+        subscribeToNewDevs(dev => setDevs([...devs, dev]))
+    },[devs]);
+
+    function setupWebsocket(){
+        disconnect();
+
+        const {latitude, longitude} = currentRegion;
+
+        connect(
+            latitude,
+            longitude,
+            techs,
+        );
+    }
+
+    async function loadDevs(){
+        const {latitude, longitude} = currentRegion;
+
+        const response = await api.get('/search',{
+            params:{
+            latitude,
+            longitude,
+            tehcs
+            }
+        });
+        setDevs(response.data.devs);
+        setupWebsocket();
+    }
+
+    function handleRegionChanged(region){
+        setCurrentRegion(region);
+    }
+
     if(!currentRegion){
         return null;
     }
-    return <MapView initialRegion={currentRegion} style={styles.map}>
-        <Marker coordinate={{latitude: -16.762619, longitude:-49.269082}}>
-            <Image style={styles.avatar} source={{uri:'https://images.tcdn.com.br/img/img_prod/596049/adesivo_finn_hora_de_aventura_043_2184_1_20171031140437.jpg'}}/>
+    
+    return (
+        <>
+        <MapView
+         onRegionChangeComplete={handleRegionChanged}
+         initialRegion={currentRegion} 
+         style={styles.map}>
+
+        {devs.map(dev=>(
+            <Marker 
+              key={dev._id} 
+              coordinate={{
+                longitude: dev.location.coordinate[0],
+                latitude: dev.location.coordinate[1],
+                }}
+            >
+            <Image
+              style={styles.avatar}
+              source={{uri: dev.avatar_url }}
+            />
+
             <Callout onPress={()=>{
-                navigation.navigate('Profile',{github_username: 'Eletromaximus'})
+                navigation.navigate('Profile', {github_username: dev.github_username})
             }}>
                 <View style={styles.callout}>
-                <Text style={styles.devName}>Max Milliano </Text>
-                <Text style={styles.devBio}>Batata Palha com molho especial</Text>
-                <Text style={styles.devTechs}>ReactJs, React Native, Node.js</Text>
+                <Text style={styles.devName}>{dev.name} </Text>
+                <Text style={styles.devBio}>{dev.bio}</Text>
+                <Text style={styles.devTechs}>{dev.tech.join(", ")}</Text>
                 </View>
             </Callout>
         </Marker>
+        ))}
+
+
     </MapView>
+    <View style={styles.searchForm}>
+     <TextInput
+        style={styles.searchImput}
+        placeholder="Buscar devs por techs..."
+        placeholderTextColor="#999"
+        autoCapitalize="words"
+        autoCorrect={false}
+        />
+
+        <TouchableOpacity onPress={()=>{}} style={styles.loadButton}>
+            <MaterialIcons name="my-location" size={20} color="#FFF" />
+        </TouchableOpacity>
+    </View>
+    </>
+    );
 }
 const styles = StyleSheet.create({
     map: {
@@ -68,6 +145,38 @@ const styles = StyleSheet.create({
     },
     devTechs:{
         marginTop: 5,
-    }
+    },
+    searchForm:{
+        position: 'absolute',
+        bottom: 20,
+        left: 20,
+        right: 20,
+        zIndex: 5,
+        flexDirection: 'row',
+    },
+    searchImput:{
+        flex: 1,
+        height:50,
+        backgroundColor:'#FFF',
+        color: '#333',
+        borderRadius: 25,
+        paddingHorizontal:20,
+        fontSize: 16,
+        shadowColor: '#000',
+        shadowOpacity: 0.2,
+        shadowOffset:{
+            width:4,
+            height: 4,
+        },
+        elevation: 2,
+    },
+    loadInitialPosition:{
+        width:50,
+        height:50,
+        backgroundColor:'#8E4Dff',
+        justifyContent:'center',
+        borderRadius:25,
+        marginLeft: 15,
+    },
 })
 export default Main;
